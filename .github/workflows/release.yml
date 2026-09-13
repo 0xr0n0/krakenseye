@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            suffix: linux-amd64
+          - goos: linux
+            goarch: arm64
+            suffix: linux-arm64
+          - goos: darwin
+            goarch: arm64
+            suffix: darwin-arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build
+        env:
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          BINARY="krakenseye-${{ matrix.suffix }}"
+          go build -trimpath -ldflags="-s -w -X main.version=${{ github.ref_name }}" \
+            -o "$BINARY" ./cmd/krakenseye
+          sha256sum "$BINARY" > "$BINARY.sha256"
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BINARY="krakenseye-${{ matrix.suffix }}"
+          gh release upload "${{ github.ref_name }}" "$BINARY" "$BINARY.sha256" --clobber

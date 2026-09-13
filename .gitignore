@@ -1,0 +1,24 @@
+# Binaries (root only, not cmd/krakenseye/ source dir)
+/krakenseye
+/kh
+/dist/
+
+# Test artifacts
+*.test
+*.out
+coverage.txt
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+/tmp/
+*.tmp
